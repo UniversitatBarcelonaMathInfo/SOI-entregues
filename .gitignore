@@ -1,0 +1,6 @@
+# No volem ni post script
+*.ps
+# Ni format pdf
+*.pdf
+# Ni carpetes estranyes, tot aqui i cap perfectament ;)
+*/
