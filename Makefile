@@ -8,3 +8,7 @@
 # http://web.cecs.pdx.edu/~trent/gnu/groff/groff.html
 # https://www.gnu.org/software/groff/manual/html_node/
 # https://www.gnu.org/software/groff/manual/
+
+
+# expresions regulars
+# http://regexone.com/
