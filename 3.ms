@@ -39,6 +39,7 @@ Eliminar tots els d'extenci\('o .o.
 	El mateix find, permet executar programes. D'aquesta forma podem executar el rm que eliminar\(`a els
 fitxers no desitjats.
 .IP
+\" WARNING !!!! diu d'aprofitar el resultat anterior + no usar bucles...
 arnau % find coreutils-8.25 -name "*.o" -exec rm {} \\\;
 
 \" Pregunta 1.3
@@ -48,6 +49,8 @@ Canvia la data dels fitxers amb extenci\('o .c.
 	Per a buscar els fitxers amb extenci\('o .c, fem un find amb -name "*.o". Ara per canviar la data dels fitxers,
 \('es tant f\(`acil com usar el touch amb --date="yyyy-mm-dd".
 .IP
+\" No arribo a pillar lo de quan deiu el pas 11, no veig com puc aprofitar el resultat anterior..., ja que els he eliminat...
+\" WARNING !!!!
 arnau % find coreutils-8.25 -name "*.c" -exec touch --date="2016-4-23" {} \\\;
 
 \" Pregunta 1.4
@@ -56,6 +59,7 @@ El mateix que la pregunta anterior, per\(`o amb nom inicial s i extensi\('o .h.
 .LP
 Aquest en concret no cont\('e complexitat.
 .IP
+\" WARNING !!!! aprofitar el resultat del pas 1?? jo flipo, no se com fer-ho
 arnau % find coreutils-8.25 -name "s*.h" -exec touch --date="2016-4-23" {} \\\;
 
 \" Problema 2
