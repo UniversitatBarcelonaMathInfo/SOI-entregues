@@ -19,48 +19,41 @@ Un cop llegit el document de la pr\(`actica 3, intentarem fer els problemes dema
 
 .NH
 Problema
-\" Pregunta 1.1
-.IP
+.IP\" Pregunta 1.1
 all=$(find coreutils-8.25)
+.IP\" Pregunta 1.2
+rm $(echo "$all" | egrep "\\.o$")
+.IP \" Pregunta 1.3
+touch --date="2016-4-23" $(echo "$all" | egrep "\\.c$")
+.IP \" Pregunta 1.4
+touch --date="2016-4-23" $(echo "$all" | egrep "/s[^/]*\\.h")
 
-\" Pregunta 1.2
-.IP
-rm $(echo "$all" | egrep "\.o$")
-
-\" Pregunta 1.3
-.IP
-touch --date="2016-4-23" $(echo "$all" | egrep "\.c$")
-
-\" Pregunta 1.4
-.IP
-touch --date="2016-4-23" $(echo "$all" | egrep "/s[^/]*\\\.h")
-
-\" Problema 2
-.NH
+.NH \" Problema 2
 Problema
+.IP \" 2.1
+wc $(find base_dades -type f -name "*.txt" | egrep "/etext[[:digit:]]{2}/") > table.txt
+.IP
+sort table.txt -rnk2 -o tmp.txt
+.IP
+printf "El numero %3d\n" `wc -l tmp.txt | awk '{print $1}'`
+.IP
+echo "Los 10 ficheros con mayor numero palabras"
+.IP
+head -n 10 tmp.txt
+.IP
+echo "Los 10 ficheros con menos palabras"
+.IP
+tail -n 10 tmp.txt
 
-\" 2.1
-.NH 2
-Buscar tots els fitxers d'extenci\('o txt.
-
-\" Problema 3
-.NH
+.NH \" Problema 3
 Problema
 .IP
 egrep "(this.*to)|(to.*this)" book.txt
-
-\" 3.2
-.IP
+.IP \" 3.2
 egrep "ly\\b" book.txt
-
-\" 3.3
-.IP
+.IP \" 3.3
 egrep "\\b[[:lower:]]{4}\\b" book.txt
-
-\" 3.4
-.IP
+.IP \" 3.4
 egrep "\\b[aeiou][[:alpha:]]*ing\\b" book.txt
-
-\" 3.5
-.IP
-arnau % sed 's/\\b[aeiou][[:alpha:]]*ing/&-yeah!/g' book.txt
+.IP \" 3.5
+sed 's/\\b[aeiou][[:alpha:]]*ing/&-yeah!/g' book.txt
