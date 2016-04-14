@@ -4,3 +4,7 @@
 *.pdf
 # Ni carpetes estranyes, tot aqui i cap perfectament ;)
 */
+# .txt, demanat per generar temporals
+*.txt
+# .swp, fem anar vim
+*.swp

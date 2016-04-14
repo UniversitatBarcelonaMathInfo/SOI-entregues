@@ -5,7 +5,7 @@
 # Com que es filtrar, el find ja no serveix, el mes facil seria fer una busqueda am tot...
 # Ara tenim egrep "/etext[[:digit:]]{2}/" les / perque es un subdirectori
 
-rm table.txt # per no fer un fitxer infinitament gran
+rm -f table.txt # per no fer un fitxer infinitament gran
 for file in `find base_dades -type f -name "*.txt" | egrep "/etext[[:digit:]]{2}/"`
 do
 	wc $file >> table.txt # 3 fer wc i posar-ho tot dins de table.txt
@@ -13,7 +13,15 @@ done
 
 # 4 Ordenar el table.txt per la segona columna i guardar-ho a tmp.txt
 # man sort > -o defineix la sortida i -k com vols ordenar, -k2 per la segona columna, -n es per dir que ordeni numericament
-sort table.txt -k2 -n -o tmp.txt
+# -r per fer que ordeni de major a menor
+sort table.txt -rnk2 -o tmp.txt
 
 # 5 Imprimir Un missatge amb el nombre de fitxers analitzats
 printf "El numero %3d\n" `wc -l tmp.txt | awk '{print $1}'`
+
+# 6
+echo "Los 10 ficheros con mayor numero palabras"
+head -n 10 tmp.txt
+
+echo "Los 10 ficheros con menos palabras"
+tail -n 10 tmp.txt
