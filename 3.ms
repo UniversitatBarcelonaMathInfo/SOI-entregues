@@ -26,7 +26,7 @@ rm $(echo "$all" | egrep "\\.o$")
 .IP \" Pregunta 1.3
 touch --date="2016-4-23" $(echo "$all" | egrep "\\.c$")
 .IP \" Pregunta 1.4
-touch --date="2016-4-23" $(echo "$all" | egrep "/s[^/]*\\.h")
+touch --date="2016-4-23" $(echo "$all" | egrep "/s[^/]*\\.h$")
 
 .NH \" Problema 2
 Problema
@@ -35,7 +35,7 @@ wc $(find base_dades -type f -name "*.txt" | egrep "/etext[[:digit:]]{2}/") > ta
 .IP
 sort table.txt -rnk2 -o tmp.txt
 .IP
-printf "El numero %3d\n" `wc -l tmp.txt | awk '{print $1}'`
+printf "El numero de ficheros analizados es %3d\\n" `wc -l tmp.txt | awk '{print $1}'` > score.txt
 .IP
 echo "Los 10 ficheros con mayor numero palabras"
 .IP
