@@ -8,3 +8,6 @@
 *.txt
 # .swp, fem anar vim
 *.swp
+
+# al final programem amb c
+*.o
