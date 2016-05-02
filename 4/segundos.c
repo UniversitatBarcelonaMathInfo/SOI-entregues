@@ -10,71 +10,59 @@
 
 #include <stdio.h>
 
-int ss;
-int pidP;
+#include "rw_pid.h"
 
+// Variables glovals que necessitem
+int ss;
+int whilemain;
+int pidP, pidM;
+
+// Que fer quan pasa un segon, cridat per ell mateix, el SIGALARM, i per continuar en el SIGCONT
 void segon ()
-{
-	alarm (1);
-	ss++;
-	if ( ss == 60 )
-	{
-		ss = 0;
-		//kill a minuts !!!!
-	}
-	printf ("SS %d\n", pidP);
-	kill ( pidP, SIGUSR1 );
-}
-/* Ja que sino, el SIGCONT no et fa sortir del pause */
-void start () { ss = 0;}
+{	alarm (1); }
+
+// Que fer quan et volen eliminar
+void killing ()
+{	whilemain = 0; }
+
 
 int main ()
 {
-	int fd; // Descriptor d'ell mateix
-	int pid;
-//	int pidM; // Id dels minuts !!!!
-//	int pidP; // Id del principal !!!!
-	char *buffer;
+// Diem quins senyals volem fer cas
+	signal ( SIGALRM, segon		);
+	signal ( SIGCONT, segon		);
+	signal ( SIGKILL, killing	);
 
-	signal ( SIGALRM, segon );
-	signal ( SIGCONT, start );
+// Escrivim el nostre pid, si hi ha un problema, ho diem i acabem.
+printf ( "My pid segundos es: %d\n", getpid () );
+	if ( writepid ( "segundos.pid" ) ) return 1;
 
-	pid = getpid ();
+// Espera a rebre nova senyal
+pause ();
 
-	remove ( "segundos.pid");
-	fd = open ( "segundos.pid",
-		O_WRONLY | O_CREAT | O_TRUNC,
-		S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH); // Permisos
-	if ( fd == -1 )
-	{
-		write (2, "ERROR, segundos no ha pogut guardar la seva informacio\n", 55); // Comptat amb el 'v' de vim.
-		//return 1;
-	}
-	write ( fd, &pid, sizeof (int) );
-	close ( fd );
-	printf ( "My pid segundos es: %d\n", pid );
+// Ara toca llegir de principal i minuts, si hi ha un problema, ho diem i acabem.
+	if ( readpid ( "principal.pid",	&pidP, "segundos" ) ) return 1;
+	if ( readpid ( "minutos.pid",	&pidM, "segundos" ) ) return 1;
 
-pause (); // Espera a rebre senyal per a executar-se
+printf ( "%d:S:Principal\n", pidP );
+printf ( "%d:S:minutos\n", pidM );
 
-// Llegir el id del principal
-	fd = open ( "principal.pid", O_RDONLY );
-	if ( fd == -1 )
-	{
-		buffer = "ERROR, segundos no ha pogut llegir de principal\n";
-		write (2, buffer, strlen (buffer) ); // Comptat amb el 'v' de vim.
-		return 1;
-	}
-	read (fd, &pidP, sizeof (int) );
-	close ( fd );
 
-	printf ( "S:El meu id: %d\n", pid );
-	printf ( "S;El meu id llegit: %d\n", pidP );
+// Inicialitzem les variables per entrar dins el while, i activem l'event
+	ss = 0;
+	whilemain = 1;
 
-	alarm (1);
-	int i = 4;
-	while ( i-- )
+// Comenza el programa en si
+	while ( whilemain )
 	{
 		pause ();
+
+		if ( ++ss == 6 )
+		{
+			ss = 0;
+			kill ( pidM, SIGCONT );
+		}
 		kill ( pidP, SIGUSR1 );
 	}
+return 0;
 }

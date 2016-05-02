@@ -2,82 +2,83 @@
 #include <signal.h> /* signal */
 #include <sys/types.h> /* kill */
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-
-
-#include <stdio.h>
-#include <string.h>
-#include <stdio.h>
-
 #include "rw_pid.h"
 
-int ss, mm, hh;
-void continuar ()
-{
-	hh++;
-	if (hh == 24) hh = 0;
-	printf ("Calla! ");
-}
-void ssIncrement ()
-{
-	ss++;
-	printf ("Calla segons: ");
-}
+#include <stdio.h>
 
+// Variables glovals que necessitem
+int ss, mm, hh;
+int whilemain;
+
+// Si pasa un segon, incrementem la variable
+void segons ()
+{	ss++; }
+// Si pasa un minut, incrementa els minuts i posa a zero els segons
+void minuts ()
+{
+	ss = 0;
+	mm++;
+}
+// Cas que posa a zero els minuts i controlem les hores
+void hores ()
+{
+	mm = 0;
+	if ( ++hh == 24 ) hh = 0;
+}
+// Mostra el temps transcorregut
+void show ()
+{	showTime ( ss, mm, hh ); }
+// Canvia la variable whilemain per poder sortir normalment del programa
+void killing ()
+{	whilemain = 0; }
+	
 int main ()
 {
 	int pidS;
 	int pidM;
 	int pidH;
 
-	signal ( SIGCONT, continuar );
-	signal ( SIGUSR1, ssIncrement );
+// Diem quins senyals volem fer cas
+	signal ( SIGCONT, hores		);
+	signal ( SIGUSR1, segons	);
+	signal ( SIGUSR2, minuts	);
+	signal ( SIGALRM, show		);
+	signal ( SIGINT,  killing	);
+	signal ( SIGKILL, killing	);
 
-printf ("My pid principal: %d\n", getpid());//!!!!
-
+// Escrivim el nostre pid, si hi ha un problema, ho diem i acabem.
+printf ( "My pid Principal es: %d\n", getpid () );
 	if ( writepid ( "principal.pid" ) ) return 1;
 
-pause (); // Espera a rebre nova senyal
-	showString ( "Llegint el pid dels demes\n" );
+// Espera a rebre nova senyal
+pause ();
 
+// Ara toca llegir de segons, minuts i hores, si hi ha un problema, ho diem i acabem.
+	showString ( "Llegint el pid dels demes\n" );
 	if ( readpid ( "segundos.pid",	&pidS, "principal" ) ) return 1;
 	if ( readpid ( "minutos.pid",	&pidM, "principal" ) ) return 1;
 	if ( readpid ( "horas.pid",	&pidH, "principal" ) ) return 1;
 
+// Ara toca activar segons, minuts i hores
 	showString ( "Activant segons, minuts i hores des de principal\n" );
-// Ara toca llegir de segons, minuts i hores
-/*
-	fd = open ( "minutos.pid", O_RDONLY );
-	if ( fd == -1 )
-	{
-		buffer = "ERROR, principal no ha pogut llegir minutos.pid\n O_RDONLY\n";
-		write (2, buffer, strlen (buffer) );
-		return 1;
-	}
-	read (fd, &pidM, sizeof (int) );
-	close ( fd );
-
-	fd = open ( "horas.pid", O_RDONLY );
-	if ( fd == -1 )
-	{
-		buffer = "ERROR, principal no ha pogut llegir horas.pid\n O_RDONLY\n";
-		write (2, buffer, strlen (buffer) );
-		return 1;
-	}
-	read (fd, &pidH, sizeof (int) );
-	close ( fd );
-*/
-
-printf ("Principal te id segundos: %d\n", pidS); //!!!!
-printf ("Principal te id minutos: %d\n", pidM); //!!!!
-printf ("Principal te id horas: %d\n", pidH); //!!!!
-	// Aqui Minuts i hores !!!!
 	kill ( pidS, SIGCONT );
-	while (1)
+	kill ( pidM, SIGCONT );
+	kill ( pidH, SIGCONT );
+
+
+// Inicialitzem les variables per entrar dins el while
+	ss = mm = hh = 0;
+	whilemain = 1;
+
+// Comenza el programa en si
+	while ( whilemain )
 	{
-		printf ( "While principal\n" );
+		showTime ( ss, mm, hh ); 
 		pause ();
 	}
+	
+	kill ( pidS, SIGKILL );
+	kill ( pidM, SIGKILL );
+	kill ( pidH, SIGKILL );
+return 0;
 }

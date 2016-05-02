@@ -11,3 +11,5 @@ int readpid ( char * file, int * read, char * origin );
 
 /* Simplement mostra l'estring entrat */
 void showString ( char * input );
+
+void showTime ( int ss, int mm, int hh);

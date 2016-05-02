@@ -1,10 +1,11 @@
-#include <unistd.h> /* getpid */
+/* open */
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#include <string.h>
-#include <stdio.h>
+#include <unistd.h> /* getpid */
+#include <string.h> /* strlen */
+#include <stdio.h> /* sprintf */
 
 char buffer[100]; // Si volguessim ser mes exactes, amb poc mes de 50 funcionaria
 
@@ -51,12 +52,19 @@ int readpid ( char * file, int * r, char * origin )
 		write (2, buffer, strlen (buffer) );
 		return 1;
 	}
-	read (fd, &r, sizeof (int) );
+	read (fd, r, sizeof (int) );
 	close ( fd );
+return 0;
 }
 
 void showString ( char * input )
 {
 	sprintf ( buffer, input );
+	write (1, buffer, strlen (buffer) );
+}
+
+void showTime ( int ss, int mm, int hh)
+{
+	sprintf ( buffer, "%2d:%2d:%2d\n", ss, mm, hh );
 	write (1, buffer, strlen (buffer) );
 }

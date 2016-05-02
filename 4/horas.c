@@ -1,19 +1,15 @@
 #include <unistd.h> /* alarm, pause */
 #include <signal.h> /* signal */
 #include <sys/types.h> /* kill */
-
-#include <stdio.h>
 #include "rw_pid.h"
 
-int mm;
+#include <stdio.h>
 
 int pidP;
-int pidH;
-
 int whilemain;
 
-// Que fer quan pasa un minut, no fem res, ja que ho fara tot el main.
-void minut () { }
+// Que fer quan pasa una hora, no fem res, ja que ho fara tot el main.
+void hora () { }
 
 // Que fer quan et volen eliminar
 void killing ()
@@ -23,37 +19,30 @@ void killing ()
 int main ()
 {
 // Diem quins senyals volem fer cas
-	signal ( SIGCONT, minut		);
+	signal ( SIGCONT, hora		);
 	signal ( SIGKILL, killing	);
 
 // Escrivim el nostre pid, si hi ha un problema, ho diem i acabem.
-	writepid ( "minutos.pid");
-printf ( "My pid minutos es: %d\n", getpid () );
+	writepid ( "horas.pid");
+printf ( "My pid horas es: %d\n", getpid () );
 
 // Espera a rebre nova senyal
 pause ();
 
 // Ara toca llegir de principal i hores, si hi ha un problema, ho diem i acabem.
 	if ( readpid ( "principal.pid",	&pidP, "minutos" ) ) return 1;
-	if ( readpid ( "horas.pid",	&pidH, "minutos" ) ) return 1;
 
-printf ( "%d:M:Principal\n", pidP );
-printf ( "%d:M:minutos\n", pidH );
+printf ( "%d:H:Principal\n", pidP );
 
 
 // Inicialitzem les variables per entrar dins el while, i activem l'event
-	mm = 0;
 	whilemain = 1;
 
 // Comenza el programa en si
 	while ( whilemain )
 	{
 		pause ();
-		if ( ++mm == 6 )
-		{
-			mm = 0;
-			kill ( pidH, SIGCONT );
-		}
-		kill ( pidP, SIGUSR2 );
+		kill ( pidP, SIGCONT );
 	}
+return 0;
 }
