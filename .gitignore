@@ -4,6 +4,8 @@
 *.pdf
 # Ni carpetes estranyes, tot aqui i cap perfectament ;)
 */
+#Execpcio
+!4/
 # .txt, demanat per generar temporals
 *.txt
 # .swp, fem anar vim
@@ -11,3 +13,4 @@
 
 # al final programem amb c
 *.o
+*.so

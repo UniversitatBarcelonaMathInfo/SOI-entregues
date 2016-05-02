@@ -11,6 +11,8 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "rw_pid.h"
+
 int ss, mm, hh;
 void continuar ()
 {
@@ -26,46 +28,56 @@ void ssIncrement ()
 
 int main ()
 {
-	int pid;
 	int pidS;
-//	int pidM; !!!!
-//	int pidH; !!!!
-	char *buf;
-	int fd;
+	int pidM;
+	int pidH;
 
 	signal ( SIGCONT, continuar );
 	signal ( SIGUSR1, ssIncrement );
 
-	pid = getpid ();
-	printf ("My pid principal: %d\n", pid);//!!!!
+printf ("My pid principal: %d\n", getpid());//!!!!
 
-	remove ( "principal.pid" );
-	fd = open ( "principal.pid",
-		O_WRONLY | O_CREAT | O_TRUNC,
-		S_IRUSR);
-	if ( fd == -1 )
-	{
-		buf = "ERROR, principal no ha pogut guardar la seva informacio\n";
-		write (2, buf, strlen (buf) );
-		return 1;
-	}
-	write ( fd, &pid, sizeof (int) );
-	close ( fd );
+	if ( writepid ( "principal.pid" ) ) return 1;
 
-pause ();
+pause (); // Espera a rebre nova senyal
+	showString ( "Llegint el pid dels demes\n" );
+
+	if ( readpid ( "segundos.pid",	&pidS, "principal" ) ) return 1;
+	if ( readpid ( "minutos.pid",	&pidM, "principal" ) ) return 1;
+	if ( readpid ( "horas.pid",	&pidH, "principal" ) ) return 1;
+
+	showString ( "Activant segons, minuts i hores des de principal\n" );
 // Ara toca llegir de segons, minuts i hores
-
-	fd = open ( "segundos.pid", O_RDONLY );
+/*
+	fd = open ( "minutos.pid", O_RDONLY );
 	if ( fd == -1 )
 	{
-		buf = "ERROR, principal no ha pogut llegir segundos.pid\n O_RDONLY\n";
-		write (2, buf, strlen (buf) );
+		buffer = "ERROR, principal no ha pogut llegir minutos.pid\n O_RDONLY\n";
+		write (2, buffer, strlen (buffer) );
 		return 1;
 	}
-	read (fd, &pidS, sizeof (int) );
+	read (fd, &pidM, sizeof (int) );
 	close ( fd );
-	printf ("Principal te id segundos: %d\n", pidS); //!!!!
+
+	fd = open ( "horas.pid", O_RDONLY );
+	if ( fd == -1 )
+	{
+		buffer = "ERROR, principal no ha pogut llegir horas.pid\n O_RDONLY\n";
+		write (2, buffer, strlen (buffer) );
+		return 1;
+	}
+	read (fd, &pidH, sizeof (int) );
+	close ( fd );
+*/
+
+printf ("Principal te id segundos: %d\n", pidS); //!!!!
+printf ("Principal te id minutos: %d\n", pidM); //!!!!
+printf ("Principal te id horas: %d\n", pidH); //!!!!
 	// Aqui Minuts i hores !!!!
 	kill ( pidS, SIGCONT );
-	while (1) pause ();
+	while (1)
+	{
+		printf ( "While principal\n" );
+		pause ();
+	}
 }
