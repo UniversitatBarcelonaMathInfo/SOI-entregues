@@ -22,8 +22,8 @@ void minuts ()
 // Cas que posa a zero els minuts i controlem les hores
 void hores ()
 {
-	mm = 0;
-	if ( ++hh == 24 ) hh = 0;
+	ss = mm = 0;
+	if ( ++hh == 3 ) hh = 0;
 }
 // Mostra el temps transcorregut
 void show ()

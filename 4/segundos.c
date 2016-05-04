@@ -18,7 +18,7 @@ int whilemain;
 int pidP, pidM;
 
 // Que fer quan pasa un segon, cridat per ell mateix, el SIGALARM, i per continuar en el SIGCONT
-void segon ()
+void segon ( int i )
 {	alarm (1); }
 
 // Que fer quan et volen eliminar
@@ -57,7 +57,7 @@ printf ( "%d:S:minutos\n", pidM );
 	{
 		pause ();
 
-		if ( ++ss == 6 )
+		if ( ++ss == 3 )
 		{
 			ss = 0;
 			kill ( pidM, SIGCONT );

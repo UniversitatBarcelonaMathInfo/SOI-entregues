@@ -49,12 +49,12 @@ printf ( "%d:M:minutos\n", pidH );
 	while ( whilemain )
 	{
 		pause ();
-		if ( ++mm == 6 )
+		if ( ++mm == 3 )
 		{
 			mm = 0;
 			kill ( pidH, SIGCONT );
-		}
-		kill ( pidP, SIGUSR2 );
+		} else
+			kill ( pidP, SIGUSR2 );
 	}
 showString ( "Finalitzat minutos correctament\n" );
 return 0;
