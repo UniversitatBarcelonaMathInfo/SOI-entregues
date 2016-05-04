@@ -20,7 +20,7 @@ int main ()
 {
 // Diem quins senyals volem fer cas
 	signal ( SIGCONT, hora		);
-	signal ( SIGKILL, killing	);
+	signal ( SIGTERM, killing	);
 
 // Escrivim el nostre pid, si hi ha un problema, ho diem i acabem.
 	writepid ( "horas.pid");
@@ -44,5 +44,6 @@ printf ( "%d:H:Principal\n", pidP );
 		pause ();
 		kill ( pidP, SIGCONT );
 	}
+showString ( "Finalitzat horas correctament\n" );
 return 0;
 }

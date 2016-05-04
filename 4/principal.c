@@ -44,6 +44,7 @@ int main ()
 	signal ( SIGUSR2, minuts	);
 	signal ( SIGALRM, show		);
 	signal ( SIGINT,  killing	);
+	signal ( SIGTERM, killing	);
 	signal ( SIGKILL, killing	);
 
 // Escrivim el nostre pid, si hi ha un problema, ho diem i acabem.
@@ -77,8 +78,10 @@ pause ();
 		pause ();
 	}
 	
-	kill ( pidS, SIGKILL );
-	kill ( pidM, SIGKILL );
-	kill ( pidH, SIGKILL );
+showString ( "Acabant els altres procesos\n" );
+	kill ( pidS, SIGTERM );
+	kill ( pidM, SIGTERM );
+	kill ( pidH, SIGTERM );
+showString ( "Finalitzat principal correctament\n" );
 return 0;
 }

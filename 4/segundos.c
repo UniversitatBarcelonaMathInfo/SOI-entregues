@@ -31,7 +31,7 @@ int main ()
 // Diem quins senyals volem fer cas
 	signal ( SIGALRM, segon		);
 	signal ( SIGCONT, segon		);
-	signal ( SIGKILL, killing	);
+	signal ( SIGTERM, killing	);
 
 // Escrivim el nostre pid, si hi ha un problema, ho diem i acabem.
 printf ( "My pid segundos es: %d\n", getpid () );
@@ -61,8 +61,9 @@ printf ( "%d:S:minutos\n", pidM );
 		{
 			ss = 0;
 			kill ( pidM, SIGCONT );
-		}
-		kill ( pidP, SIGUSR1 );
+		} else
+			kill ( pidP, SIGUSR1 );
 	}
+showString ( "Finalitzat segundos correctament\n" );
 return 0;
 }

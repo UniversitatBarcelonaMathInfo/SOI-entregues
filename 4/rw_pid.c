@@ -65,6 +65,6 @@ void showString ( char * input )
 
 void showTime ( int ss, int mm, int hh)
 {
-	sprintf ( buffer, "%2d:%2d:%2d\n", ss, mm, hh );
+	sprintf ( buffer, "%2d:%2d:%2d\n", hh, mm, ss );
 	write (1, buffer, strlen (buffer) );
 }
