@@ -23,7 +23,7 @@ void minuts ()
 void hores ()
 {
 	ss = mm = 0;
-	if ( ++hh == 3 ) hh = 0;
+	if ( ++hh == 24 ) hh = 0;
 }
 // Mostra el temps transcorregut
 void show ()
@@ -48,7 +48,6 @@ int main ()
 	signal ( SIGKILL, killing	);
 
 // Escrivim el nostre pid, si hi ha un problema, ho diem i acabem.
-printf ( "My pid Principal es: %d\n", getpid () );
 	if ( writepid ( "principal.pid" ) ) return 1;
 
 // Espera a rebre nova senyal
@@ -73,10 +72,7 @@ pause ();
 
 // Comenza el programa en si
 	while ( whilemain )
-	{
-		showTime ( ss, mm, hh ); 
 		pause ();
-	}
 	
 showString ( "Acabant els altres procesos\n" );
 	kill ( pidS, SIGTERM );

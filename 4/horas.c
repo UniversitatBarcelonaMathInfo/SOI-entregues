@@ -24,15 +24,12 @@ int main ()
 
 // Escrivim el nostre pid, si hi ha un problema, ho diem i acabem.
 	writepid ( "horas.pid");
-printf ( "My pid horas es: %d\n", getpid () );
 
 // Espera a rebre nova senyal
 pause ();
 
 // Ara toca llegir de principal i hores, si hi ha un problema, ho diem i acabem.
 	if ( readpid ( "principal.pid",	&pidP, "minutos" ) ) return 1;
-
-printf ( "%d:H:Principal\n", pidP );
 
 
 // Inicialitzem les variables per entrar dins el while, i activem l'event
@@ -44,6 +41,5 @@ printf ( "%d:H:Principal\n", pidP );
 		pause ();
 		kill ( pidP, SIGCONT );
 	}
-showString ( "Finalitzat horas correctament\n" );
 return 0;
 }
