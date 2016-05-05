@@ -1,3 +1,6 @@
+#include <unistd.h> /* alarm, pause */
+#include <signal.h> /* signal */
+#include <sys/types.h> /* kill */
 
 /* 0 correct write pid */
 // File, quin fitxer vols escriure

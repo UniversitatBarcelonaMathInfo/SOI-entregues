@@ -1,10 +1,4 @@
-#include <unistd.h> /* alarm, pause */
-#include <signal.h> /* signal */
-#include <sys/types.h> /* kill */
-
 #include "rw_pid.h"
-
-#include <stdio.h>
 
 // Variables glovals que necessitem
 int ss, mm, hh;

@@ -1,8 +1,3 @@
-#include <unistd.h> /* alarm, pause */
-#include <signal.h> /* signal */
-#include <sys/types.h> /* kill */
-
-#include <stdio.h>
 #include "rw_pid.h"
 
 int mm;
