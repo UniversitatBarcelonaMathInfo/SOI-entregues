@@ -1,16 +1,31 @@
-#include "rw_pid.h"
+#include "common.h"
+
+#include <string.h> /* strlen */
+#include <stdio.h> /* sprintf */
 
 // Variables glovals que necessitem
 int ss, mm, hh;
-int whilemain;
+char buffer[100]; // Si volguessim ser mes exactes, amb poc mes de 50 funcionaria
+// Els declarem aqui, ja que el killing
+int pidS;
+int pidM;
+int pidH;
 
+void showString ( char * input )
+{
+	sprintf ( buffer, input );
+	write (1, buffer, strlen (buffer) );
+}
+
+/************************* Funcions d'events *************************/
 // Si pasa un segon, incrementem la variable
 void segons ()
 {	ss++; }
+
 // Si pasa un minut, incrementa els minuts i posa a zero els segons
 void minuts ()
 {
-	ss = 0;
+	ss = 0; // Ho fem per no tenir que controlar-ho tot a minuts
 	mm++;
 }
 // Cas que posa a zero els minuts i controlem les hores
@@ -21,25 +36,29 @@ void hores ()
 }
 // Mostra el temps transcorregut
 void show ()
-{	showTime ( ss, mm, hh ); }
-// Canvia la variable whilemain per poder sortir normalment del programa
+{
+	sprintf ( buffer, "%2d:%2d:%2d\n", hh, mm, ss );
+	write (1, buffer, strlen (buffer) );
+}
 void killing ()
-{	whilemain = 0; }
-	
+{
+showString ( "Acabant els altres procesos\n" );
+	kill ( pidS, SIGTERM );
+	kill ( pidM, SIGTERM );
+	kill ( pidH, SIGTERM );
+showString ( "Finalitzat principal correctament\n" );
+exit ( 0 );
+}
+
 int main ()
 {
-	int pidS;
-	int pidM;
-	int pidH;
 
 // Diem quins senyals volem fer cas
 	signal ( SIGCONT, hores		);
 	signal ( SIGUSR1, segons	);
 	signal ( SIGUSR2, minuts	);
 	signal ( SIGALRM, show		);
-	signal ( SIGINT,  killing	);
 	signal ( SIGTERM, killing	);
-	signal ( SIGKILL, killing	);
 
 // Escrivim el nostre pid, si hi ha un problema, ho diem i acabem.
 	if ( writepid ( "principal.pid" ) ) return 1;
@@ -62,16 +81,10 @@ pause ();
 
 // Inicialitzem les variables per entrar dins el while
 	ss = mm = hh = 0;
-	whilemain = 1;
 
 // Comenza el programa en si
-	while ( whilemain )
+	while ( 1 )
 		pause ();
 	
-showString ( "Acabant els altres procesos\n" );
-	kill ( pidS, SIGTERM );
-	kill ( pidM, SIGTERM );
-	kill ( pidH, SIGTERM );
-showString ( "Finalitzat principal correctament\n" );
 return 0;
 }

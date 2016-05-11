@@ -57,14 +57,3 @@ int readpid ( char * file, int * r, char * origin )
 return 0;
 }
 
-void showString ( char * input )
-{
-	sprintf ( buffer, input );
-	write (1, buffer, strlen (buffer) );
-}
-
-void showTime ( int ss, int mm, int hh)
-{
-	sprintf ( buffer, "%2d:%2d:%2d\n", hh, mm, ss );
-	write (1, buffer, strlen (buffer) );
-}

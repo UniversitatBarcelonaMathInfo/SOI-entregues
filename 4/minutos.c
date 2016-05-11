@@ -24,6 +24,9 @@ int main ()
 // Escrivim el nostre pid, si hi ha un problema, ho diem i acabem.
 	writepid ( "minutos.pid");
 
+// Fem que la condicio estigui abans del pause, aixi, podrem acabar el programa un cop fet el pause
+	whilemain = 1;
+
 // Espera a rebre nova senyal
 pause ();
 
@@ -34,7 +37,6 @@ pause ();
 
 // Inicialitzem les variables per entrar dins el while, i activem l'event
 	mm = 0;
-	whilemain = 1;
 
 // Comenza el programa en si
 	while ( whilemain )

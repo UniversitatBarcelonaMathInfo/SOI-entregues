@@ -1,7 +1,3 @@
-#include <unistd.h> /* alarm, pause */
-#include <signal.h> /* signal */
-#include <sys/types.h> /* kill */
-
 /* 0 correct write pid */
 // File, quin fitxer vols escriure
 int writepid ( char * file );
@@ -12,7 +8,8 @@ int writepid ( char * file );
 // origin, per a saber qui el crida
 int readpid ( char * file, int * read, char * origin );
 
-/* Simplement mostra l'estring entrat */
+/* Mostra l'string entrat */
 void showString ( char * input );
 
+/* Mostra correctament el temps */
 void showTime ( int ss, int mm, int hh);
