@@ -1,3 +1,5 @@
+#!/bin/bash
+
 #info: http://tldp.org/LDP/Bash-Beginners-Guide/html/sect_07_01.html
 aux=$(ps aux | egrep '\./(principal|segundos|minutos|horas)$')
 if [ $? -eq 0 ]

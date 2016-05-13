@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Per a mostrar l'hora del contador
 kill -SIGALRM $(ps aux | egrep '/(principal)' | awk '{print $2}')
 
