@@ -1,10 +1,26 @@
 #include "rw_pid.h"
+/*
+Us de:
+	sigset_t mask, oldmask;
+	sigemptyset ( &mask );
+	sigaddset ( &mask, SIGTERM );
+	sigprocmask ( SIG_BLOCK, &mask, &oldmask );
+	sigsuspend ( &oldmask );
+	sigprocmask ( SIG_UNBLOCK, &mask, NULL );
+Per evitar el problema que rebi la interrupcio quan no toca.
+Ho fem per evitar que es demani que acabi el proces i aquest no acabi, i ho fem aixi per a poder sortir per la sortida normal.
+S'ha tret gracies al Lluis Garrido que ens ha ajudat amb aquest link:
+http://www.gnu.org/software/libc/manual/html_node/Sigsuspend.html
+*/
 
-// Variables glovals que necessitem
+// Variables glovals que necessitem globals
 int ss, mm, hh;
 int whilemain;
 
 // Si pasa un segon, incrementem la variable
+// No cal el control, ja que quan rebi el de minuts o hores es posara automaticament a zero
+// Aixo ho podem fer gracies a que "segundos" no envia sempre senyal, nomes ho fa quan segons ha d'incrementar,
+// sino "segundos" enviara la senyal nomes a "minutos"
 void segons ()
 {	ss++; }
 // Si pasa un minut, incrementa els minuts i posa a zero els segons
@@ -32,14 +48,15 @@ int main ()
 	int pidM;
 	int pidH;
 
+// Variables per a rebre interrupcions
+	sigset_t mask, oldmask;
+
 // Diem quins senyals volem fer cas
 	signal ( SIGCONT, hores		);
 	signal ( SIGUSR1, segons	);
 	signal ( SIGUSR2, minuts	);
 	signal ( SIGALRM, show		);
-	signal ( SIGINT,  killing	);
 	signal ( SIGTERM, killing	);
-	signal ( SIGKILL, killing	);
 
 // Escrivim el nostre pid, si hi ha un problema, ho diem i acabem.
 	if ( writepid ( "principal.pid" ) ) return 1;
