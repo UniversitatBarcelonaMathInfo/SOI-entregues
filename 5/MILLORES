@@ -1,0 +1,17 @@
+De forma general em definit:
+#define ENOMEM (void*)-1
+	- Error not memory, per evitar tenir-ho que escriure-ho tot i perque quedi mes clar
+#define IS_NOT_FREE	0
+#define IS_FREE		1
+	- Estats de block.free
+		Simplement per aclarar que esta passant
+
+Dins la funcio malloc:
+	- Em tret
+		last = global_base;
+		Ja que last esta definida en:
+			- find_free_block ( p_block *last, size_t size )
+	- Em canviat
+		if ( global_base ) block->free = IS_NOT_FREE;
+		per
+		if ( block ) block->free = IS_NOT_FREE;
