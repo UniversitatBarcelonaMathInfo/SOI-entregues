@@ -1,8 +1,24 @@
 #!/bin/bash
 
-export LD_PRELOAD=/$PWD/malloc.so
-./malloctest
-ls > ji
+if [ $# == 0 ]
+then
+	export LD_PRELOAD=/$PWD/malloc.so
+	./malloctest
+elif [ $1 == ls ]
+then
+	export LD_PRELOAD=/$PWD/malloc.so
+	ls --color=auto
+elif [ $1 == gdb ]
+then
+	echo "escriu: set enviroment LD_PRELOAD=./malloc.so"
+	gdb malloctest -q
+else
+	echo "no se"
+fi
+#else if [ $1 == ls ]
+#then
+#	ls
+#fi
 
 # For gdb:
 #
