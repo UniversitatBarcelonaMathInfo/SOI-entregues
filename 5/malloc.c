@@ -77,7 +77,7 @@ void __free_next ( p_block current )
  * Si l'anterior esta en free. Llavors l'adjunta
  *
  * Fa les comprovacions necessaries per a evitar errors
- *///!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Dubte puntual, no se que fer, si cridar la funció o fer-ho directament
+ */
 void __free_previous ( p_block current )
 {
 	p_block previous;
@@ -93,11 +93,7 @@ void __free_previous ( p_block current )
 		if ( previous )
 		{ // Per evitar que no existeixi. Tot i que si la entrada es correcta, no hauria de passar mai.
 			if ( previous->free == IS_FREE )
-			{
 				__free_next ( previous );
-//				previous->next = current->next;
-//				previous->size += current->size + META_SIZE;
-			}
 		}
 	}
 }
@@ -139,6 +135,17 @@ p_block __find_free_best_fit ( p_block *last, size_t size )
 		}
 
 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+/*
+Sumes el tamany total
+poses la estructura
+Actualitzes l'estructura
+	Vigilar si no hi ha espai
+*/
+
+
+
 // Millora de com "dividir" l'espai
 	}
 return bestFit;
@@ -242,6 +249,7 @@ return ptr;
  *
  * Un intent de fer un realloc útil en C
  */
+ //!!!!!!!!!!!!!!!!! Error, en el cas que demani menys memoria, crear un nou block
 void *realloc ( void *ptr, size_t size )
 {
 	void *new;
@@ -249,22 +257,16 @@ void *realloc ( void *ptr, size_t size )
 	if ( ptr )
 	{ // Controlem el cas null
 		block = __return_pointer_block ( ptr );
-		if ( block )
-		{ // Comprovem que sigui valid.
-			if ( block->size < size )
-			{
-				new = malloc ( size );
-				memcpy ( new, ptr, block->size );
+		if ( block->size < size )
+		{
+			new = malloc ( size );
+			memcpy ( new, ptr, block->size );
 
-				free ( ptr ); // Petita millora Vs. block->free = IS_FREE;
+			free ( ptr ); // Petita millora Vs. block->free = IS_FREE;
 
-				ptr = new;
-			}
-			return ptr;
+			ptr = new;
 		}
-//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		// Si arriba aqui, hi ha algut algun error
-		// Llavors tota la informació que teniem la hem perduda...
+		return ptr;
 	}
 return malloc ( size );
 }
