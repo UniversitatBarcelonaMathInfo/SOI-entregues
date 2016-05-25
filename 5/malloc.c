@@ -4,19 +4,25 @@
 
 #include <stdio.h>
 
-#define META_SIZE sizeof ( struct m_block )
-#define ENOMEM (void*)-1
+#define META_SIZE	sizeof ( struct m_block )
+#define ENOMEM		(void*) -1
 #define IS_NOT_FREE	0
 #define IS_FREE		1
 
 typedef struct m_block* p_block;
 
-void *global_base=NULL;
+// Punter global, tot i ser aixi, no vull que ningú més que jo el canviin.
+static void *global_base=NULL;
 
-/*
+/* Teoria
 Equivalens
 current->free
 (*current).free
+*/
+
+/* Com treballem:
+__nom Significa que declarem una funció privada per a nosaltres
+	- No estaria al fitxer .h
 */
 
 // Declarem una estructura
@@ -27,7 +33,13 @@ struct m_block // Tamany de 24 = 8*3 // hi ha 7 bytes que sobren
 	uint8_t		free;	// Tamany 1, amb 0: Hi ha coses, amb ≠0 no hi ha res
 };
 
-p_block return_pointer_block ( void *p )
+/********************************
+        FUNCIONS PRIVADES 
+********************************/
+/**
+ * Funció que donant el punter donat al usuari recuperem el m_block
+ */
+p_block __return_pointer_block ( void *p )
 {
 	p_block ptr;
 	if ( p ) // Controlem que sigui valid
@@ -38,18 +50,20 @@ p_block return_pointer_block ( void *p )
 	return NULL;
 }
 
-/*
-Posa el present en free
-I si el seguent se pot adjuntar, l'adjunta
-*/
-void free_next ( p_block current )
+/**
+ * Posa el present en free
+ * I si el seguent se pot adjuntar, l'adjunta
+ *
+ * Fa les comprovacions necessaries per a evitar errors
+ */
+void __free_next ( p_block current )
 {
 	p_block next;
 	if ( current )
-	{
+	{ // Comprova entrada vàlida
 		next = current->next;
 		if ( next )
-		{
+		{ // Comprova que tingui un element seguent
 			if ( next->free == IS_FREE )
 			{
 				current->size += next->size + META_SIZE;
@@ -59,130 +73,86 @@ void free_next ( p_block current )
 	}
 }
 
-/*
-Si l'anterior esta en free. Llavors l'adjunta
-*/
-void free_previous ( p_block current )
+/**
+ * Si l'anterior esta en free. Llavors l'adjunta
+ *
+ * Fa les comprovacions necessaries per a evitar errors
+ *///!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Dubte puntual, no se que fer, si cridar la funció o fer-ho directament
+void __free_previous ( p_block current )
 {
 	p_block previous;
 	previous = global_base;
 
-	if ( current )
-	{ // Comprovem que la entrada sigui valida.
+	if ( current && ( current != global_base ) )
+	{ // Comprovem que la entrada sigui valida. I no sigui el primer element.
+
 // Ens dediquem a buscar l'element anterior.
 		while ( (previous) && (previous->next != current) )
 			previous = previous->next;
-		if (previous)
-		{ // Per evitar problemes, que no existeixi
+
+		if ( previous )
+		{ // Per evitar que no existeixi. Tot i que si la entrada es correcta, no hauria de passar mai.
 			if ( previous->free == IS_FREE )
 			{
-				free_next ( previous );
+				__free_next ( previous );
 //				previous->next = current->next;
 //				previous->size += current->size + META_SIZE;
 			}
 		}
 	}
 }
-/*
-Suposarem que els free estan correctament fets
-Aixi que com a maxim estaran free el anterior i el seguent
 
-Problema 1
--Posem el atribut free a 1.
--Em definit "return_pointer_block" que retorna l'adreça del bloc de meta informació donat un apuntador de dades.
--Tenim en compte el apuntador NULL
-*/
-void free ( void *ptr )
-{
-printf ( "My free 2\n" );
-	p_block current;
-	current = return_pointer_block ( ptr );
-	if ( current ) // Controlant el cas NULL
-	{
-		current->free = IS_FREE;
-		free_next ( current );
-		free_previous ( current );
-	}
-}
-void free2 ( void *ptr )
-{
-printf ( "My free\n" );
-	p_block block = return_pointer_block ( ptr );
-	if ( block ) // Controlant el cas NULL
-		block->free = IS_FREE;
-	ptr = NULL; // Important anular el que conte...
-}
-// RRRR !!!!! pendent
-/*
-void free ( void *ptr )
-{
-printf ( "My free\n" );
-	if ( ptr )
-	{ // Controlant el cas NULL
-		p_block a = (p_block) ptr;
-		a[-1].free = IS_FREE;
-	}
-}
-*/
-
-/*
-if current // Permet assegurar que hi ha informacio valida
-	if free // Si esta lliure comprovem
-		if current->size ≥ size
-			Acabem
-Tot aixo equival a: current && !( current->free && (current->size ≥ size) )
-*/
-//p_block find_free_block ( p_block *last, size_t size )
-/*
-Quan ha acabat de buscar?
-	1. Si no hi ha mes block:
-		- if current
-	2. Si esta lliure i te espai de sobres
-		- if current->free && (current->size) ≥ size
-
-*/
-p_block find_free_block ( p_block *last, size_t size )
-//p_block find_free_block ( size_t size )
+/**
+ * Busca l'existencia d'un element lliure amb la memòria indicada.
+ *
+ * Per si mai no ha obtingut resultat, a *last indica on es troba l'últim element.
+ * Aixo es fa per aprofitar el recorregut que em fet.
+ */
+p_block __find_free_block ( p_block *last, size_t size )
 {
 	p_block current = global_base;
 	while ( current && !( current->free && (current->size >= size) ) )
-	{
+	{ // Sortira: Quan ho haguem trobat o ja no queden més elements per a recorrer
 		*last = current;
 		current = current->next;
 	}
-//	{ // Mentres current sigui valid, el tamany mes pe
-//		*last = current;
-//	}
 return current;
 }
 
-/*
-Definim el millor, com el que es reajusta millor al tamany que volem
-!!!!!!!!!!!!!!!!!!!!!!!
-Quan improved, hauria de dividir els blocks ?
-*/
-p_block find_free_best_fit ( p_block *last, size_t size )
+/**
+ * Busca si hi ha algun element lliure amb l'espai demanat
+ * Aprofita el trajecte, per si no hi ha element, en *last escriu l'últim element
+ */
+p_block __find_free_best_fit ( p_block *last, size_t size )
 {
-printf ( "Best\n" );
 	p_block current, bestFit;
-	bestFit = find_free_block ( last, size );
+
+	bestFit = __find_free_block ( last, size );
 	if ( bestFit )
 	{ // Arribats aquest punt, el last no te sentit.
-printf ( "Improved\n" );
 		current = bestFit->next;
-		while ( current )
-		{
+		while ( current && ( bestFit->size != size ) )
+		{ // Si el tamany reclamat es el mateix, llavors no cal continuar
 			if ( ( current->free == IS_FREE ) && ( current->size >= size ) && ( current->size < bestFit->size ) )
 				bestFit = current;
 			current = current->next;
 		}
+
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// Millora de com "dividir" l'espai
 	}
 return bestFit;
 }
 
-p_block request_space ( p_block last, size_t size )
+/**
+ * Reserva el nombre de bytes demanats per size
+ * Suposem que last, és l'últim block definit fins el moment
+ *
+ * Retornara el m_block arreclant el seu contingut
+ * Si mai no pot fer-ho, retornarà un NULL
+ */
+p_block __request_space ( p_block last, size_t size )
 {
-printf ( "Request space\n" );
 	p_block block;
 	block = sbrk (0);
 
@@ -195,40 +165,66 @@ printf ( "Request space\n" );
 return block;
 }
 
+/*********************************
+        FUNCIONS PUBLIQUES
+*********************************/
+/*
+Problema 1
+-Posem el atribut free a 1.
+-Em definit "__return_pointer_block" que retorna l'adreça del bloc de meta informació donat un apuntador de dades.
+-Tenim en compte el apuntador NULL
+*/
+/**
+ * Funció que allibera el punter donat pel malloc.
+ *
+ * Nota: no eliminarà la informació que hi ha fins que es faci un malloc.
+ */
+void free ( void *ptr )
+{
+	p_block current;
+	current = __return_pointer_block ( ptr );
+	if ( current ) // Controlant el cas NULL
+	{
+		current->free = IS_FREE;
+		__free_next	( current );
+		__free_previous	( current );
+	}
+}
+
+/**
+ * Funció malloc de <libstd>
+ *
+ * Un intent de fer un malloc útil en C
+ */
 void *malloc ( size_t size )
 {
-printf ( "My malloc\n" );
 	p_block block, last;
 
 	if ( size <= 0 ) return NULL;
 
 	if ( global_base )
 	{
-		block = find_free_best_fit ( &last, size ); // Definim last
+		block = __find_free_best_fit ( &last, size ); // Definim last
 		if ( block ) block->free = IS_NOT_FREE; // Em canviat a block, el important aqui es aquest
 		else
 		{
-			block = request_space ( last, size );
+			block = __request_space ( last, size );
 			if ( !block ) return NULL;
 		}
 	} else
 	{ // Primer cas, quan mai s'ha reservat memoria
-		block = request_space ( NULL, size );
+		block = __request_space ( NULL, size );
 		if ( !block ) return NULL;
 		global_base = block;
 	}
 return block +1;
 }
 
-void *mallocSimple ( size_t size )
-{
-	void *p = sbrk (0);
-
-	if ( sbrk (size) == ENOMEM )
-		return NULL;
-return p;
-}
-
+/**
+ * Funció calloc de <libstd>
+ *
+ * Un intent de fer un calloc útil en C
+ */
 void *calloc ( size_t nelem, size_t elsize )
 {
 	void *ptr;
@@ -241,21 +237,23 @@ void *calloc ( size_t nelem, size_t elsize )
 return ptr;
 }
 
-/*
--Si entra un NULL, fa un malloc normal
-*/
+/**
+ * Funció realloc de <libstd>
+ *
+ * Un intent de fer un realloc útil en C
+ */
 void *realloc ( void *ptr, size_t size )
 {
 	void *new;
 	if ( ptr )
 	{ // Controlem el cas null
-		p_block block = return_pointer_block ( ptr );
+		p_block block = __return_pointer_block ( ptr );
 		if ( block->size < size )
 		{
 			new = malloc ( size );
 			memcpy ( new, ptr, block->size );
-//			block->free = IS_FREE;
-			free ( ptr ); // Petita millora
+
+			free ( ptr ); // Petita millora Vs. block->free = IS_FREE;
 
 			ptr = new;
 		}

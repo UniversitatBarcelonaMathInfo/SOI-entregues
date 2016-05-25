@@ -12,6 +12,10 @@ elif [ $1 == gdb ]
 then
 	echo "escriu: set enviroment LD_PRELOAD=./malloc.so"
 	gdb malloctest -q
+elif [ $1 == fir ]
+then
+	export LD_PRELOAD=/$PWD/malloc.so
+	firefox
 else
 	echo "no se"
 fi
