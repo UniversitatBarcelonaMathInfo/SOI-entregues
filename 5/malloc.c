@@ -245,19 +245,26 @@ return ptr;
 void *realloc ( void *ptr, size_t size )
 {
 	void *new;
+	p_block block;
 	if ( ptr )
 	{ // Controlem el cas null
-		p_block block = __return_pointer_block ( ptr );
-		if ( block->size < size )
-		{
-			new = malloc ( size );
-			memcpy ( new, ptr, block->size );
+		block = __return_pointer_block ( ptr );
+		if ( block )
+		{ // Comprovem que sigui valid.
+			if ( block->size < size )
+			{
+				new = malloc ( size );
+				memcpy ( new, ptr, block->size );
 
-			free ( ptr ); // Petita millora Vs. block->free = IS_FREE;
+				free ( ptr ); // Petita millora Vs. block->free = IS_FREE;
 
-			ptr = new;
+				ptr = new;
+			}
+			return ptr;
 		}
-		return ptr;
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		// Si arriba aqui, hi ha algut algun error
+		// Llavors tota la informació que teniem la hem perduda...
 	}
 return malloc ( size );
 }
