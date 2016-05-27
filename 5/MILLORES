@@ -16,6 +16,10 @@ Dins la funcio malloc:
 		per
 		if ( block ) block->free = IS_NOT_FREE;
 
+	- Fem que si no ha tobat cap element lliure,
+		comprova si l'últim element esta lliure, si es aixi, llavors nomes demanara el tros de memoria
+		extra necessari
+
 
 Millores
 	1 Pendent !!!!

@@ -1,4 +1,4 @@
-OBJ	= malloctest malloc.so
+OBJ	= malloctest malloc.so testAll
 FLAGS	= -g -Wall -Wextra -W
 
 all: ${OBJ}
@@ -8,6 +8,9 @@ malloc.so: malloc.c
 
 malloctest: malloctest.c
 	gcc malloctest.c -o malloctest ${FLAGS}
+
+testAll: testAll.c
+	gcc testAll.c -o testAll ${FLAGS}
 
 clear: 
 	rm ${OBJ} -f

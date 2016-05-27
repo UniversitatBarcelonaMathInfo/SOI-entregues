@@ -13,12 +13,14 @@ typedef struct m_block* p_block;
 
 // Punter global, tot i ser aixi, no vull que ningú més que jo el canviin.
 static void *global_base=NULL;
+static size_t nom;
 
 /* Teoria
 Equivalens
 current->free
 (*current).free
 */
+
 
 /* Com treballem:
 __nom Significa que declarem una funció privada per a nosaltres
@@ -31,11 +33,23 @@ struct m_block // Tamany de 24 = 8*3 // hi ha 7 bytes que sobren
 	size_t		size;	// Tamany 8, amb el tamany total que te reservat
 	struct m_block	*next;	// Tamany 8, amb el seguent del mateix
 	uint8_t		free;	// Tamany 1, amb 0: Hi ha coses, amb ≠0 no hi ha res
+	size_t		nom;	// Per debugeixar millor i fer-ho mes entenedor
 };
 
 /********************************
         FUNCIONS PRIVADES 
 ********************************/
+void __print ()
+{
+	p_block current = global_base;
+	int i = 0;
+	while ( current )
+	{
+		printf ( "%3d n: %3zu -size: %5zu\tstat: %d\tpunter: %p\n", i++, current->nom, current->size, current->free, current );
+		current = current->next;
+	}
+}
+
 /**
  * Funció que donant el punter donat al usuari recuperem el m_block
  */
@@ -115,9 +129,47 @@ p_block __find_free_block ( p_block *last, size_t size )
 return current;
 }
 
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+void __comprovar_tamany ( p_block current, size_t size )
+{
+	size_t aux;
+	p_block newBlock;
+	printf ( "NOM: %zu\n", current->nom );
+printf ( "Entrat comprovat Tamany: %p\n", current );
+
+	if ( !current )
+		printf ( "He trobat on peta\n" );
+	else printf ( "preocupa\n" );
+
+	if ( current->size > size )
+	{ // Comprovem que pugui reservar-se un nou block
+printf ( "Lloc 1\n" );
+		aux = current->size - size;
+		if ( aux >= META_SIZE )
+		{
+printf ( "Lloc 2\n" );
+			newBlock = current + size; // Posicionem el bloc
+
+printf ( "Lloc 3\n" );
+			newBlock->free = IS_FREE;
+			newBlock->size = aux - META_SIZE;
+			newBlock->next = current->next;
+			newBlock->nom = nom++;
+
+printf ( "Lloc 4\n" );
+			current->next = newBlock;
+			current->size = size;
+printf ( "Feta millora\n" );
+		}
+	}
+printf ( "Sortit\n" );
+}
+
 /**
  * Busca si hi ha algun element lliure amb l'espai demanat
  * Aprofita el trajecte, per si no hi ha element, en *last escriu l'últim element
+ *
+ * Definim el millor, com l'element mes petit que conte el desitjat
  */
 p_block __find_free_best_fit ( p_block *last, size_t size )
 {
@@ -125,28 +177,15 @@ p_block __find_free_best_fit ( p_block *last, size_t size )
 
 	bestFit = __find_free_block ( last, size );
 	if ( bestFit )
-	{ // Arribats aquest punt, el last no te sentit.
+	{ // Arribats aquest punt, el last no te sentit. I sabem que el resultat es positiu.
 		current = bestFit->next;
 		while ( current && ( bestFit->size != size ) )
 		{ // Si el tamany reclamat es el mateix, llavors no cal continuar
 			if ( ( current->free == IS_FREE ) && ( current->size >= size ) && ( current->size < bestFit->size ) )
 				bestFit = current;
 			current = current->next;
-		}
-
-//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
-/*
-Sumes el tamany total
-poses la estructura
-Actualitzes l'estructura
-	Vigilar si no hi ha espai
-*/
-
-
-
-// Millora de com "dividir" l'espai
+		} // Comprovem si podem crear un nou element ( exces de memoria no usada )
+		__comprovar_tamany ( bestFit, size );
 	}
 return bestFit;
 }
@@ -169,6 +208,7 @@ p_block __request_space ( p_block last, size_t size )
 	block->size = size;
 	block->next = NULL;
 	block->free = IS_NOT_FREE;
+	block->nom = nom++;
 return block;
 }
 
@@ -188,14 +228,18 @@ Problema 1
  */
 void free ( void *ptr )
 {
+printf ( "Free" );
 	p_block current;
 	current = __return_pointer_block ( ptr );
 	if ( current ) // Controlant el cas NULL
 	{
+printf ( ": %zu", current->nom );
 		current->free = IS_FREE;
 		__free_next	( current );
 		__free_previous	( current );
 	}
+printf ( "\n" );
+__print ();
 }
 
 /**
@@ -205,6 +249,7 @@ void free ( void *ptr )
  */
 void *malloc ( size_t size )
 {
+	printf ( "Malloc" );
 	p_block block, last;
 
 	if ( size <= 0 ) return NULL;
@@ -212,10 +257,20 @@ void *malloc ( size_t size )
 	if ( global_base )
 	{
 		block = __find_free_best_fit ( &last, size ); // Definim last
-		if ( block ) block->free = IS_NOT_FREE; // Em canviat a block, el important aqui es aquest
-		else
+		if ( block )
+		{ // Si ha trobat
+			block->free = IS_NOT_FREE; // Em canviat a block, el important aqui es aquest
+		} else
 		{
-			block = __request_space ( last, size );
+			if ( last->free == IS_FREE )
+			{ // Necessariament per __find_free_block, size > last->size
+				if ( sbrk (size - last->size) == ENOMEM )
+					return NULL;
+				block = last;
+				block->free = IS_NOT_FREE;
+				block->size = size;
+			} else
+				block = __request_space ( last, size );
 			if ( !block ) return NULL;
 		}
 	} else
@@ -223,7 +278,13 @@ void *malloc ( size_t size )
 		block = __request_space ( NULL, size );
 		if ( !block ) return NULL;
 		global_base = block;
+		nom = 0;
+		block->nom = nom++;
 	}
+if ( block )
+	printf ( ": %zu", block->nom );
+printf ( "\n" );
+__print ();
 return block +1;
 }
 
@@ -234,6 +295,7 @@ return block +1;
  */
 void *calloc ( size_t nelem, size_t elsize )
 {
+printf ( "calloc:\n" );
 	void *ptr;
 	size_t size = nelem * elsize;
 
@@ -241,6 +303,7 @@ void *calloc ( size_t nelem, size_t elsize )
 	if ( ptr == NULL ) return NULL;
 
 	memset ( (char *)ptr, 0, size );
+__print ();
 return ptr;
 }
 
@@ -252,11 +315,13 @@ return ptr;
  //!!!!!!!!!!!!!!!!! Error, en el cas que demani menys memoria, crear un nou block
 void *realloc ( void *ptr, size_t size )
 {
+printf ( "realloc:\n" );
 	void *new;
 	p_block block;
 	if ( ptr )
 	{ // Controlem el cas null
 		block = __return_pointer_block ( ptr );
+		__free_next ( block ); // fem el tamany mes gran possible
 		if ( block->size < size )
 		{
 			new = malloc ( size );
@@ -265,8 +330,10 @@ void *realloc ( void *ptr, size_t size )
 			free ( ptr ); // Petita millora Vs. block->free = IS_FREE;
 
 			ptr = new;
-		}
+		} else if ( block->size > size )
+			__comprovar_tamany ( block, size );
 		return ptr;
 	}
+__print ();
 return malloc ( size );
 }
