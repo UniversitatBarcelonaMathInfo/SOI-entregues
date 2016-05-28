@@ -14,6 +14,8 @@ typedef struct m_block* p_block;
 // Punter global, tot i ser aixi, no vull que ningú més que jo el canviin.
 static void *global_base=NULL;
 static size_t nom;
+static int debug=1;
+static int debugPrint=1;
 
 /* Teoria
 Equivalens
@@ -41,6 +43,8 @@ struct m_block // Tamany de 24 = 8*3 // hi ha 7 bytes que sobren
 ********************************/
 void __print ()
 {
+if ( debugPrint )
+{
 	p_block current = global_base;
 	int i = 0;
 	while ( current )
@@ -48,6 +52,7 @@ void __print ()
 		printf ( "%3d n: %3zu -size: %5zu\tstat: %d\tpunter: %p\n", i++, current->nom, current->size, current->free, current );
 		current = current->next;
 	}
+}
 }
 
 /**
@@ -134,6 +139,9 @@ void __comprovar_tamany ( p_block current, size_t size )
 {
 	size_t aux;
 	p_block newBlock;
+	void *p;
+if ( debug )
+{
 	printf ( "NOM: %zu\n", current->nom );
 printf ( "Entrat comprovat Tamany: %p\n", current );
 
@@ -148,7 +156,10 @@ printf ( "Lloc 1\n" );
 		if ( aux >= META_SIZE )
 		{
 printf ( "Lloc 2\n" );
-			newBlock = current + size; // Posicionem el bloc
+			p = current +1; // punter del current + META_SIZE
+			p += size; // El lloc mes les posicions
+			newBlock = p;
+	//		newBlock = current + size; // Posicionem el bloc
 
 printf ( "Lloc 3\n" );
 			newBlock->free = IS_FREE;
@@ -163,6 +174,7 @@ printf ( "Feta millora\n" );
 		}
 	}
 printf ( "Sortit\n" );
+}
 }
 
 /**

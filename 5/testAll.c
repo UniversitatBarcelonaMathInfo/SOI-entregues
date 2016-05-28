@@ -22,11 +22,12 @@ I crec que ja
 
 int main ()
 {
-	int **p;
+	int *p;
 	
-	p = (int **) malloc ( 10 * sizeof (int *) );
-
+	p = (int *) malloc ( 100 * sizeof (int *) );
 free (p);
+	p = (int *) malloc ( 10 * sizeof (int *) );
+
 /*
 void free ( void *ptr )
 void *malloc ( size_t size )
