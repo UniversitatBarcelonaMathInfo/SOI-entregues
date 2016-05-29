@@ -64,7 +64,7 @@ p_block __return_pointer_block ( void *p )
 {
 	p_block ptr;
 
-	if ( p ) return NULL; // Controlem que sigui valid
+	if ( !p ) return NULL; // Controlem que sigui valid
 
 	ptr = (p_block) p;
 	return ptr -1;
