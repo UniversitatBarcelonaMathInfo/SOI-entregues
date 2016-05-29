@@ -13,9 +13,11 @@ typedef struct m_block* p_block;
 
 // Punter global, tot i ser aixi, no vull que ningú més que jo el canviin.
 static void *global_base=NULL;
+
+// Variables per a poder debugegar + veure que passa...
 static size_t nom;
-static int debug=1;
-static int debugPrint=1;
+//static int debug=1;
+//static int debugPrint=1;
 
 /* Teoria
 Equivalens
@@ -41,18 +43,18 @@ struct m_block // Tamany de 24 = 8*3 // hi ha 7 bytes que sobren
 /********************************
         FUNCIONS PRIVADES 
 ********************************/
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1 Voldria que mostres la diferencia entre punters...
 void __print ()
-{
-if ( debugPrint )
 {
 	p_block current = global_base;
 	int i = 0;
-	while ( current )
+	while ( current->next )
 	{
 		printf ( "%3d n: %3zu -size: %5zu\tstat: %d\tpunter: %p\n", i++, current->nom, current->size, current->free, current );
 		current = current->next;
 	}
-}
+	current = current->next;
+	printf ( "%3d n: %3zu -size: %5zu\tstat: %d\tpunter: %p\n", i++, current->nom, current->size, current->free, current );
 }
 
 /**
@@ -61,17 +63,15 @@ if ( debugPrint )
 p_block __return_pointer_block ( void *p )
 {
 	p_block ptr;
-	if ( p ) // Controlem que sigui valid
-	{
-		ptr = (p_block) p;
-		return ptr -1;
-	}
-	return NULL;
+
+	if ( p ) return NULL; // Controlem que sigui valid
+
+	ptr = (p_block) p;
+	return ptr -1;
 }
 
 /**
- * Posa el present en free
- * I si el seguent se pot adjuntar, l'adjunta
+ * Si el seguent esta en free, l'adjunta amb l'actual
  *
  * Fa les comprovacions necessaries per a evitar errors
  */
@@ -84,7 +84,7 @@ void __free_next ( p_block current )
 		if ( next )
 		{ // Comprova que tingui un element seguent
 			if ( next->free == IS_FREE )
-			{
+			{ // Adjunta el seguent amb l'actual
 				current->size += next->size + META_SIZE;
 				current->next = next->next;
 			}
@@ -93,7 +93,7 @@ void __free_next ( p_block current )
 }
 
 /**
- * Si l'anterior esta en free. Llavors l'adjunta
+ * Si l'anterior esta en free. Llavors l'adjunta si aquest es free
  *
  * Fa les comprovacions necessaries per a evitar errors
  */
@@ -125,7 +125,9 @@ void __free_previous ( p_block current )
  */
 p_block __find_free_block ( p_block *last, size_t size )
 {
-	p_block current = global_base;
+	p_block current;
+	current = global_base;
+
 	while ( current && !( current->free && (current->size >= size) ) )
 	{ // Sortira: Quan ho haguem trobat o ja no queden més elements per a recorrer
 		*last = current;
@@ -134,47 +136,36 @@ p_block __find_free_block ( p_block *last, size_t size )
 return current;
 }
 
-//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+/**
+ * Comprova si podem fer un m_block amb la memoria
+ * que exedeix
+ */
 void __comprovar_tamany ( p_block current, size_t size )
 {
 	size_t aux;
 	p_block newBlock;
 	void *p;
-if ( debug )
-{
-	printf ( "NOM: %zu\n", current->nom );
-printf ( "Entrat comprovat Tamany: %p\n", current );
-
-	if ( !current )
-		printf ( "He trobat on peta\n" );
-	else printf ( "preocupa\n" );
 
 	if ( current->size > size )
 	{ // Comprovem que pugui reservar-se un nou block
-printf ( "Lloc 1\n" );
 		aux = current->size - size;
 		if ( aux >= META_SIZE )
 		{
-printf ( "Lloc 2\n" );
 			p = current +1; // punter del current + META_SIZE
 			p += size; // El lloc mes les posicions
 			newBlock = p;
-	//		newBlock = current + size; // Posicionem el bloc
 
-printf ( "Lloc 3\n" );
+// Definim el nou block
 			newBlock->free = IS_FREE;
 			newBlock->size = aux - META_SIZE;
 			newBlock->next = current->next;
 			newBlock->nom = nom++;
 
-printf ( "Lloc 4\n" );
+// Definim el block, amb les noves condicions
 			current->next = newBlock;
 			current->size = size;
-printf ( "Feta millora\n" );
 		}
 	}
-printf ( "Sortit\n" );
-}
 }
 
 /**
@@ -240,18 +231,15 @@ Problema 1
  */
 void free ( void *ptr )
 {
-printf ( "Free" );
 	p_block current;
 	current = __return_pointer_block ( ptr );
-	if ( current ) // Controlant el cas NULL
-	{
-printf ( ": %zu", current->nom );
+
+	if ( current )
+	{ // Controlant el cas NULL
 		current->free = IS_FREE;
 		__free_next	( current );
 		__free_previous	( current );
 	}
-printf ( "\n" );
-__print ();
 }
 
 /**
@@ -261,29 +249,34 @@ __print ();
  */
 void *malloc ( size_t size )
 {
-	printf ( "Malloc" );
 	p_block block, last;
 
-	if ( size <= 0 ) return NULL;
+	if ( size <= 0 )
+	{
+		__print (); // Fem un malloc incoherent, per tal de visualitzar com esta tot montat
+		return NULL;
+	}
 
 	if ( global_base )
 	{
 		block = __find_free_best_fit ( &last, size ); // Definim last
 		if ( block )
-		{ // Si ha trobat
+		{ // Si ha trobat. el find_free_best_fit ja s'ha encarregat de reajustar el tamany si es podia fer.
 			block->free = IS_NOT_FREE; // Em canviat a block, el important aqui es aquest
 		} else
-		{
+		{ // Aqui sabem que last esta definit.
 			if ( last->free == IS_FREE )
 			{ // Necessariament per __find_free_block, size > last->size
-				if ( sbrk (size - last->size) == ENOMEM )
-					return NULL;
+				if ( sbrk (size - last->size) == ENOMEM ) return NULL;
+
 				block = last;
 				block->free = IS_NOT_FREE;
 				block->size = size;
 			} else
+			{
 				block = __request_space ( last, size );
-			if ( !block ) return NULL;
+				if ( !block ) return NULL;
+			}
 		}
 	} else
 	{ // Primer cas, quan mai s'ha reservat memoria
@@ -293,10 +286,6 @@ void *malloc ( size_t size )
 		nom = 0;
 		block->nom = nom++;
 	}
-if ( block )
-	printf ( ": %zu", block->nom );
-printf ( "\n" );
-__print ();
 return block +1;
 }
 
@@ -307,7 +296,6 @@ return block +1;
  */
 void *calloc ( size_t nelem, size_t elsize )
 {
-printf ( "calloc:\n" );
 	void *ptr;
 	size_t size = nelem * elsize;
 
@@ -315,7 +303,6 @@ printf ( "calloc:\n" );
 	if ( ptr == NULL ) return NULL;
 
 	memset ( (char *)ptr, 0, size );
-__print ();
 return ptr;
 }
 
@@ -327,9 +314,9 @@ return ptr;
  //!!!!!!!!!!!!!!!!! Error, en el cas que demani menys memoria, crear un nou block
 void *realloc ( void *ptr, size_t size )
 {
-printf ( "realloc:\n" );
 	void *new;
 	p_block block;
+
 	if ( ptr )
 	{ // Controlem el cas null
 		block = __return_pointer_block ( ptr );
@@ -342,10 +329,9 @@ printf ( "realloc:\n" );
 			free ( ptr ); // Petita millora Vs. block->free = IS_FREE;
 
 			ptr = new;
-		} else if ( block->size > size )
+		} else
 			__comprovar_tamany ( block, size );
 		return ptr;
 	}
-__print ();
 return malloc ( size );
 }

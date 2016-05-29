@@ -6,7 +6,23 @@ De forma general em definit:
 	- Estats de block.free
 		Simplement per aclarar que esta passant
 
+Dins de __free_previous
+	No nomes comprovem que sigui valida l'entrada
+	També comprovem que no sigui el primer element, sino faria una busqueda de tot, quan no trobaria el previus.
+Dins del free
+	Si l'anterior i el seguent estan lliures, llavors els unifica
+
+Dins del find free best fit
+	Em definit que el millor es el primer element més petit que s'ajusta al tamany desitjat
+	Com a millora em fet que parara de buscar si el tamany trobat es igual al tamany demanat.
+	> Comprova que si el tamany trobat es execiu, llavors divideix el tamany amb la necessaria.
+
 Dins la funcio malloc:
+	- Em afegit al cas incoherent malloc ( 0 ),
+		que mostri l'estat de la reserva de memoria
+		-> Aqui ens hem adonat que el size no és necessari, ja que amb el next, pots deduir el tamany
+			( exeptuant de l'ultim )
+			on podria tenir una variable gloval per a controlar el tamany d'aquest
 	- Em tret
 		last = global_base;
 		Ja que last esta definida en:
@@ -16,12 +32,17 @@ Dins la funcio malloc:
 		per
 		if ( block ) block->free = IS_NOT_FREE;
 
-	- Fem que si no ha tobat cap element lliure,
-		comprova si l'últim element esta lliure, si es aixi, llavors nomes demanara el tros de memoria
-		extra necessari
+	- Si ja esta definit global:
+		- Em fet que primer busca si hi ha memoria lliure.
+			- Fem que si no ha tobat cap element lliure,
+				comprova si l'últim element esta lliure, si es aixi, llavors nomes demanara el tros de memoria
+				extra necessari
 
+Dins de la funcio realloc
+	1er si podem fem el block mes gran ( mirem si el seguent esta en free )
+		En cas que el tamany es suficient, comprovem si podem dividir el tamany
 
 Millores
-	1 Pendent !!!!
+	1- comprova si el tamany exedeix, reajustar-ho per despreciar menys memoria
 	2- free, allibera si pot l'anterior i el seguent
 	3- fa un best fit, en comptes d'un first fit
