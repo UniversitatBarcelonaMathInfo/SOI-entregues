@@ -11,6 +11,7 @@ Dins de __free_previous
 	També comprovem que no sigui el primer element, sino faria una busqueda de tot, quan no trobaria el previus.
 Dins del free
 	Si l'anterior i el seguent estan lliures, llavors els unifica
+	Si se fa un free (NULL); avisa per pantalla
 
 Dins del find free best fit
 	Em definit que el millor es el primer element més petit que s'ajusta al tamany desitjat
@@ -22,7 +23,8 @@ Dins la funcio malloc:
 		que mostri l'estat de la reserva de memoria
 		-> Aqui ens hem adonat que el size no és necessari, ja que amb el next, pots deduir el tamany
 			( exeptuant de l'ultim )
-			on podria tenir una variable gloval per a controlar el tamany d'aquest
+			on podria tenir una variable gloval per a controlar el tamany d'aquest o reservar inicialment un tros
+			de memoria dinamica per aquest valor.
 	- Em tret
 		last = global_base;
 		Ja que last esta definida en:

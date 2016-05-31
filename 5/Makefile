@@ -15,5 +15,5 @@ testAll: testAll.c
 clear: 
 	rm ${OBJ} -f
 
-# Per evitar problemes like hi ha un fitxer anomenat all i ja no compila res mes
+# Per evitar problemes like hi ha un fitxer anomenat all i ja no compila res mes, o si tenim un fitxer clear, que no elimini
 .PHONY: all clear

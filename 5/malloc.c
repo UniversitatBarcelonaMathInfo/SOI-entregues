@@ -47,14 +47,27 @@ struct m_block // Tamany de 24 = 8*3 // hi ha 7 bytes que sobren
 void __print ()
 {
 	p_block current = global_base;
+	void *a1, *a2;
 	int i = 0;
-	while ( current->next )
+	if ( current )
 	{
-		printf ( "%3d n: %3zu -size: %5zu\tstat: %d\tpunter: %p\n", i++, current->nom, current->size, current->free, current );
-		current = current->next;
+		while ( current->next )
+		{
+			a1 = current;
+			a2 = current->next;
+			printf	(
+					"%3d n: %3zu -size: %5zu %5zu\tstat: %d\tpunter: %p\n",
+					i++,
+					current->nom,
+					current->size,
+					a2 - a1 - META_SIZE,
+					current->free,
+					current 
+				);
+			current = current->next;
+		}
+		printf ( "%3d n: %3zu -size: %5zu     ?\tstat: %d\tpunter: %p\n", i++, current->nom, current->size, current->free, current );
 	}
-	current = current->next;
-	printf ( "%3d n: %3zu -size: %5zu\tstat: %d\tpunter: %p\n", i++, current->nom, current->size, current->free, current );
 }
 
 /**
@@ -239,7 +252,8 @@ void free ( void *ptr )
 		current->free = IS_FREE;
 		__free_next	( current );
 		__free_previous	( current );
-	}
+	} else
+		printf ( "No entenc perque es cridat 'free (NULL);'\n" );
 }
 
 /**
